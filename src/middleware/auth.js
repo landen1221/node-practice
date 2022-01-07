@@ -10,8 +10,9 @@ const auth = async (req, res, next) => {
             'tokens.token': token,
         });
         if (!user) {
-            throw new Error();
+            throw new Error("User doesn't exist");
         }
+        req.token = token;
         req.user = user;
         next();
     } catch (e) {

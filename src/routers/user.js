@@ -28,6 +28,30 @@ router.post('/users/login', async (req, res, next) => {
     }
 });
 
+router.post('/users/logout', auth, async (req, res) => {
+    try {
+        req.user.tokens = req.user.tokens.filter((token) => {
+            return token.token !== req.token;
+        });
+        await req.user.save();
+        res.status(200).json({ msg: 'Logged out' });
+    } catch (e) {
+        const msg = e || 'Logout failed';
+        res.status(400).send({ msg });
+    }
+});
+
+router.post('/users/logoutAll', auth, async (req, res) => {
+    try {
+        req.user.tokens = [];
+        await req.user.save();
+        res.status(200).json({ msg: 'Logged out of all devices' });
+    } catch (e) {
+        const msg = e || 'Logout failed';
+        res.status(400).send({ msg });
+    }
+});
+
 router.get('/users/me', auth, async (req, res) => {
     res.send(req.user);
 });
