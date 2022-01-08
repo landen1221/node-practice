@@ -56,25 +56,8 @@ router.get('/users/me', auth, async (req, res) => {
     res.send(req.user);
 });
 
-router.get('/users/:id', async (req, res) => {
+router.patch('/users/me', auth, async (req, res) => {
     const { id } = req.params;
-    try {
-        const user = await User.findById(id);
-        if (user) {
-            res.status(200).send(user);
-        }
-        res.status(404).send({ msg: 'User not found' });
-    } catch (e) {
-        if (e.name === 'CastError') {
-            res.status(404).send({ msg: 'User not found' });
-        }
-        res.status(500).send(e);
-    }
-});
-
-router.patch('/users/:id', async (req, res) => {
-    const { id } = req.params;
-    console.log(req.body);
     const updates = Object.keys(req.body);
     const allowedUpdates = ['name', 'email', 'age', 'password'];
 
@@ -87,33 +70,25 @@ router.patch('/users/:id', async (req, res) => {
     }
 
     try {
-        const user = await User.findById(id);
+        const user = req.user;
         updates.forEach((update) => (user[update] = req.body[update]));
         await user.save();
 
-        if (!user) {
-            return res.status(404).send({ msg: 'User not found' });
-        }
         res.status(200).send(user);
     } catch (e) {
         res.status(400).send(e);
     }
 });
 
-router.delete('/users/:id', async (req, res) => {
-    const { id } = req.params;
-
+router.delete('/users/me', auth, async (req, res) => {
     try {
-        const user = await User.findByIdAndDelete(id);
-        if (!user) {
-            res.status(404).send({ msg: 'User not found' });
-        }
+        await req.user.remove();
         res.status(200).send({ msg: `User successfully deleted`, user });
     } catch (e) {
         if (e.name === 'CastError') {
             res.status(404).send({ msg: 'Task not found' });
         }
-        res.status(400).send(e);
+        res.status(400).send("Can't delete user");
     }
 });
 
